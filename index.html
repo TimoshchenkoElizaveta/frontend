@@ -2,24 +2,32 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Frontend v1.0</title>
+  <title>Frontend v2.0</title>
   <style>
     body { font-family: sans-serif; max-width: 640px; margin: 2rem auto; }
     input, button { padding: 6px 10px; margin: 4px 0; }
-    pre { background: #f4f4f4; padding: 10px; border-radius: 6px; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 6px; min-height: 1.2em; }
+    section { margin-bottom: 1.2rem; border-bottom: 1px solid #eee; padding-bottom: 1rem; }
   </style>
 </head>
 <body>
-  <h1>Frontend v1.0</h1>
+  <h1>Frontend v2.0</h1>
 
-  <label>
-    Текст:
+  <section>
+    <h2>Отправка данных</h2>
     <input id="input" type="text" placeholder="Введите текст" />
-  </label>
-  <button id="send">Отправить</button>
+    <button id="send">Отправить</button>
+    <h3>Ответ сервера:</h3>
+    <pre id="sendLog">—</pre>
+  </section>
 
-  <h3>Ответ сервера:</h3>
-  <pre id="log">—</pre>
+  <section>
+    <h2>Просмотр сохранённых данных</h2>
+    <input id="filter" type="text" placeholder="Необязательный фильтр" />
+    <button id="load">Загрузить данные</button>
+    <h3>Содержимое data.txt:</h3>
+    <pre id="loadLog">—</pre>
+  </section>
 
   <script>
     const API = "http://127.0.0.1:5000/api/data";
@@ -33,9 +41,25 @@
           body: JSON.stringify({ text })
         });
         const data = await res.json();
-        document.getElementById("log").textContent = JSON.stringify(data, null, 2);
+        document.getElementById("sendLog").textContent = JSON.stringify(data, null, 2);
       } catch (e) {
-        document.getElementById("log").textContent = "Ошибка: " + e.message;
+        document.getElementById("sendLog").textContent = "Ошибка: " + e.message;
+      }
+    });
+
+    document.getElementById("load").addEventListener("click", async () => {
+      const filter = document.getElementById("filter").value.toLowerCase();
+      try {
+        const res = await fetch(API, { method: "GET" });
+        const data = await res.json();
+        const items = (data.content || []).filter(
+          (s) => !filter || s.toLowerCase().includes(filter)
+        );
+        document.getElementById("loadLog").textContent = items.length
+          ? items.join("\n")
+          : "(пусто)";
+      } catch (e) {
+        document.getElementById("loadLog").textContent = "Ошибка: " + e.message;
       }
     });
   </script>
